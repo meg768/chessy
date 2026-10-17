@@ -4,9 +4,11 @@ A minimal native macOS chessboard built with SwiftUI. Requires macOS 14 or later
 
 ## Use
 
-Click a piece, then click its destination. Click the selected square again to cancel. The board starts with all 32 pieces in the standard arrangement and resizes with the window.
+White starts. Click a piece of the side to move, then a highlighted destination. Click the selected square again to cancel, or another friendly piece to change selection. Illegal destinations leave the board unchanged and display feedback. The board starts in the standard arrangement and resizes with the window.
 
-Movement is unrestricted: there are no turns, legal-move checks, check/checkmate, castling, en passant, or promotion. Moving onto an occupied square replaces its piece. Positions are not saved; relaunching restores the initial position. No engine, networking, or external dependencies are included.
+The self-contained rules model enforces alternating turns, piece movement and captures, king safety, castling, en passant, and promotion with a choice of queen, rook, bishop, or knight. Check, checkmate, and stalemate are displayed; checkmate and stalemate stop further moves. Canceling promotion leaves the original position unchanged.
+
+No AI, clocks, move history, persistence, or external dependencies are included. Draws by repetition, the 50/75-move rules, agreement, and dead positions/insufficient material are not adjudicated. Relaunch the app to start a new game. This is a local two-player board, not a tournament adjudicator.
 
 ## Build
 
@@ -22,7 +24,17 @@ Local builds use ad-hoc signing. App Store distribution is outside this initial 
 
 ## Verification
 
-Built successfully with Xcode 26.5. Manually verified the initial arrangement, selection, cancellation, an e2-to-e4 move, and the board at the minimum window size.
+Build the macOS app with the command above. Run the independent rules tests with Apple's Swift Package Manager (no package dependencies):
+
+```sh
+swift test
+```
+
+The Xcode app and test package compile the same `Chessy/ChessGame.swift` source. Tests cover each piece, blocked paths and captures, turns, king safety and pins, castling restrictions and lost rights, en passant and its expiry, all promotion choices, checkmate, stalemate, and the opening move tree through three plies (400 and 8,902 positions).
+
+Verified with Xcode 26.5: app build and rules tests passed. In the running app, manually checked illegal-move feedback, turn enforcement, destination highlights, cancellation, Fool's Mate with disabled squares, and promotion cancellation followed by choosing a knight.
+
+Movement rules were checked against [FIDE Laws of Chess, Article 3](https://handbook.fide.com/chapter/E012023).
 
 ## Piece artwork
 
