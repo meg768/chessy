@@ -6,7 +6,7 @@ struct ChessyApp: App {
         Window("Chessy", id: "board") {
             ChessboardView()
         }
-        .defaultSize(width: 560, height: 600)
+        .defaultSize(width: 800, height: 860)
         .windowResizability(.contentMinSize)
     }
 }

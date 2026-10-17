@@ -44,7 +44,7 @@ struct ChessboardView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(16)
-        .frame(minWidth: 360, minHeight: 400)
+        .frame(minWidth: 560, minHeight: 620)
     }
 
     private func square(row: Int, column: Int, size: CGFloat) -> some View {
@@ -53,9 +53,14 @@ struct ChessboardView: View {
         return Button {
             select(index)
         } label: {
-            Text(pieces[index] ?? "")
-                .font(.system(size: size * 0.72))
-                .foregroundStyle(.black)
+            ZStack {
+                if pieces[index] != nil {
+                    Image(pieceName(at: index).replacingOccurrences(of: " ", with: "-"))
+                        .resizable()
+                        .scaledToFit()
+                        .padding(size * 0.06)
+                }
+            }
                 .frame(width: size, height: size)
                 .background((row + column).isMultiple(of: 2)
                             ? Color(red: 0.91, green: 0.87, blue: 0.77)
