@@ -59,7 +59,7 @@ struct ChessboardView: View {
                 .frame(width: size, height: size)
                 .background((row + column).isMultiple(of: 2)
                             ? Color(red: 0.91, green: 0.87, blue: 0.77)
-                            : Color(red: 0.48, green: 0.59, blue: 0.42))
+                            : Color(red: 0.70, green: 0.43, blue: 0.40))
                 .overlay {
                     if selected {
                         Rectangle()
