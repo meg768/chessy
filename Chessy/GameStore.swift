@@ -26,3 +26,14 @@ struct GameStore {
         try data.write(to: url, options: .atomic)
     }
 }
+
+extension ChessGame {
+    // A save failure is reported to the caller without rolling back a legal move.
+    // The next successful save writes the entire current position.
+    @discardableResult
+    mutating func move(_ move: ChessMove, savingWith save: (ChessGame) throws -> Void) throws -> Bool {
+        guard self.move(move) else { return false }
+        try save(self)
+        return true
+    }
+}

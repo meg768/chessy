@@ -30,7 +30,9 @@ saves show a warning and start a fresh board; the original file is retained
 until a completed move or confirmed New Game replaces it. A move whose save
 fails remains playable in memory, with a visible warning that it may be lost
 on quit. The next successful save clears the warning. This is a single local
-snapshot, without backups or multi-instance conflict handling.
+snapshot, without backups or multi-instance conflict handling. The app uses a
+single SwiftUI `Window`, not `WindowGroup`: one board window per running app
+instance. Separate processes sharing the same save file are not coordinated.
 
 ## Build
 
@@ -54,9 +56,12 @@ swift test
 
 The Xcode app and test package compile the same model and GameStore sources. Tests cover each piece, blocked paths and captures, turns, king safety and pins, castling restrictions and lost rights, en passant and its expiry, all promotion choices, checkmate, stalemate, and the opening move tree through three plies (400 and 8,902 positions).
 
-Storage tests additionally cover missing/corrupt/version-mismatched saves, restored turn and special-move rights, promotion, completed games, replacing a save with a new game, and write failures using isolated temporary files.
+Storage tests additionally cover missing/corrupt/version-mismatched saves, restored turn and special-move rights, promotion, completed games, replacing a save with a new game, and write failures using isolated temporary files. A move/save coordination
+test injects a failing save, checks that the legal move stays in memory while
+the previous file remains unchanged, then uses the real store on the next move
+and verifies that both moves are restored. Illegal moves do not attempt saving.
 
-Verified with Xcode 26.5: app builds and all 24 tests passed. Manually verified e2–e4 surviving quit/relaunch with Black to move, and New Game cancellation/confirmation. In the running app, manually checked illegal-move feedback, turn enforcement, destination highlights, cancellation, Fool's Mate with disabled squares, and promotion cancellation followed by choosing a knight.
+Verified with Xcode 26.5: app builds and all 26 tests passed. Manually verified e2–e4 surviving quit/relaunch with Black to move, and New Game cancellation/confirmation. In the running app, manually checked illegal-move feedback, turn enforcement, destination highlights, cancellation, Fool's Mate with disabled squares, and promotion cancellation followed by choosing a knight.
 
 Movement rules were checked against [FIDE Laws of Chess, Article 3](https://handbook.fide.com/chapter/E012023).
 

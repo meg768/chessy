@@ -124,4 +124,50 @@ final class GameStoreTests: XCTestCase {
         XCTAssertThrowsError(try impossible.save(ChessGame()))
         XCTAssertEqual(try Data(contentsOf: store.url), original)
     }
+
+    func testMoveSaveFailureKeepsMoveAndLaterSaveCatchesUp() throws {
+        var game = ChessGame()
+        try store.save(game)
+        let previousBytes = try Data(contentsOf: store.url)
+        var saveAttempts = 0
+        let unavailableDisk: (ChessGame) throws -> Void = { position in
+            saveAttempts += 1
+            XCTAssertEqual(position.turn, .black)
+            XCTAssertEqual(position.board[36], ChessPiece(side: .white, kind: .pawn))
+            throw CocoaError(.fileWriteNoPermission)
+        }
+
+        // Use the same coordination entry point as ChessboardView.finish(_:).
+        XCTAssertThrowsError(try game.move(ChessMove(from: 52, to: 36), savingWith: unavailableDisk))
+        XCTAssertEqual(saveAttempts, 1)
+        XCTAssertNil(game.board[52])
+        XCTAssertEqual(game.board[36], ChessPiece(side: .white, kind: .pawn))
+        XCTAssertEqual(game.turn, .black)
+        XCTAssertEqual(try Data(contentsOf: store.url), previousBytes)
+        XCTAssertEqual(try store.load()?.board, ChessGame().board)
+
+        // A later legal move saves both moves, rather than just the last delta.
+        XCTAssertTrue(try game.move(ChessMove(from: 12, to: 28), savingWith: store.save))
+        let restored = try XCTUnwrap(store.load())
+        XCTAssertEqual(restored.board, game.board)
+        XCTAssertEqual(restored.turn, .white)
+        XCTAssertEqual(restored.enPassant, game.enPassant)
+        XCTAssertEqual(restored.castlingRights, game.castlingRights)
+        XCTAssertEqual(restored.legalMoves(), game.legalMoves())
+        XCTAssertEqual(restored.board[36], ChessPiece(side: .white, kind: .pawn))
+        XCTAssertEqual(restored.board[28], ChessPiece(side: .black, kind: .pawn))
+    }
+
+    func testIllegalMoveDoesNotAttemptSaving() throws {
+        var game = ChessGame()
+        try store.save(game)
+        let previousBytes = try Data(contentsOf: store.url)
+        XCTAssertFalse(try game.move(ChessMove(from: 52, to: 28), savingWith: { _ in
+            XCTFail("An illegal move must not attempt a save")
+        }))
+        XCTAssertEqual(game.board, ChessGame().board)
+        XCTAssertEqual(game.turn, .white)
+        XCTAssertEqual(try Data(contentsOf: store.url), previousBytes)
+    }
+
 }

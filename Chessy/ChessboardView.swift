@@ -156,16 +156,14 @@ struct ChessboardView: View {
     }
 
     private func finish(_ move: ChessMove) {
-        if game.move(move) {
-            do {
-                try store.save(game)
-                persistenceMessage = nil
-            } catch {
-                persistenceMessage = "Could not save this move. It may be lost when the app closes."
-            }
-            selectedSquare = nil
-            feedback = nil
+        do {
+            guard try game.move(move, savingWith: store.save) else { return }
+            persistenceMessage = nil
+        } catch {
+            persistenceMessage = "Could not save this move. It may be lost when the app closes."
         }
+        selectedSquare = nil
+        feedback = nil
     }
 
     private func statusText(_ status: GameStatus) -> String {
