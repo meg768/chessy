@@ -7,7 +7,7 @@ let package = Package(
     targets: [
         .target(name: "ChessRules", path: "Chessy",
                 exclude: ["ChessyApp.swift", "ChessboardView.swift", "Assets.xcassets", "PieceArtwork-LICENSE.txt"],
-                sources: ["ChessGame.swift"]),
+                sources: ["ChessGame.swift", "GameStore.swift"]),
         .testTarget(name: "ChessRulesTests", dependencies: ["ChessRules"])
     ]
 )

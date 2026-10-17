@@ -1,10 +1,24 @@
 import SwiftUI
 
 struct ChessboardView: View {
-    @State private var game = ChessGame()
+    @State private var game: ChessGame
+    @Binding var newGameRequested: Bool
+    private let store: GameStore
+    @State private var persistenceMessage: String?
     @State private var selectedSquare: Int?
     @State private var feedback: String?
     @State private var promotionMoves: [ChessMove] = []
+
+    init(newGameRequested: Binding<Bool>, store: GameStore = GameStore()) {
+        _newGameRequested = newGameRequested
+        self.store = store
+        do {
+            _game = State(initialValue: try store.load() ?? ChessGame())
+        } catch {
+            _game = State(initialValue: ChessGame())
+            _persistenceMessage = State(initialValue: "Saved game could not be restored. A new game will be saved after your next move.")
+        }
+    }
 
     private var selectedMoves: [ChessMove] {
         selectedSquare.map { game.legalMoves(from: $0) } ?? []
@@ -38,12 +52,30 @@ struct ChessboardView: View {
             }
             .disabled(status.isFinished)
 
-            Text(statusText(status))
+            Text([statusText(status), persistenceMessage].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(16)
         .frame(minWidth: 560, minHeight: 620)
+        .alert("Start a new game?", isPresented: $newGameRequested) {
+            Button("New Game", role: .destructive) {
+                let fresh = ChessGame()
+                do {
+                    try store.save(fresh)
+                    game = fresh
+                    selectedSquare = nil
+                    promotionMoves = []
+                    feedback = nil
+                    persistenceMessage = nil
+                } catch {
+                    persistenceMessage = "Could not save a new game. Your current game is unchanged."
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This replaces your current game and its saved position.")
+        }
         .sheet(isPresented: Binding(get: { !promotionMoves.isEmpty }, set: { if !$0 { promotionMoves = [] } })) {
             VStack(spacing: 20) {
                 Text("Promote pawn").font(.headline)
@@ -125,6 +157,12 @@ struct ChessboardView: View {
 
     private func finish(_ move: ChessMove) {
         if game.move(move) {
+            do {
+                try store.save(game)
+                persistenceMessage = nil
+            } catch {
+                persistenceMessage = "Could not save this move. It may be lost when the app closes."
+            }
             selectedSquare = nil
             feedback = nil
         }
