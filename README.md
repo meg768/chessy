@@ -8,7 +8,31 @@ White starts. Click a piece of the side to move, then a highlighted destination.
 
 The self-contained rules model enforces alternating turns, piece movement and captures, king safety, castling, en passant, and promotion with a choice of queen, rook, bishop, or knight. Check, checkmate, and stalemate are displayed; checkmate and stalemate stop further moves. Canceling promotion leaves the original position unchanged.
 
-No AI, clocks, move history, persistence, or external dependencies are included. Draws by repetition, the 50/75-move rules, agreement, and dead positions/insufficient material are not adjudicated. Relaunch the app to start a new game. This is a local two-player board, not a tournament adjudicator.
+No AI, clocks, move history, or external dependencies are included. Draws by repetition, the 50/75-move rules, agreement, and dead positions/insufficient material are not adjudicated. Use File → New Game (⌘N), then confirm, to replace the saved game with a new one. This is a local two-player board, not a tournament adjudicator.
+
+## Automatic saving
+
+One game is saved locally as versioned JSON in the app's Application Support
+folder (`Chessy/game.json`, inside the app container when sandboxed). Every
+completed legal move is written atomically before the event finishes. This
+includes the final move of a completed game. Launching restores the board,
+side to move, castling rights, and en passant target; game status is recomputed.
+There is no cloud sync, game library, or move-history storage.
+
+Selecting a piece, illegal clicks, and an unconfirmed promotion do not save a
+new position. Closing during promotion restores the position before that move.
+New Game requires confirmation and saves the initial position before replacing
+the current board. Cancel leaves both board and file unchanged. If that save
+fails, the current game stays open.
+
+A missing save starts a fresh game. Unreadable, malformed, or unsupported-version
+saves show a warning and start a fresh board; the original file is retained
+until a completed move or confirmed New Game replaces it. A move whose save
+fails remains playable in memory, with a visible warning that it may be lost
+on quit. The next successful save clears the warning. This is a single local
+snapshot, without backups or multi-instance conflict handling. The app uses a
+single SwiftUI `Window`, not `WindowGroup`: one board window per running app
+instance. Separate processes sharing the same save file are not coordinated.
 
 ## Build
 
@@ -30,9 +54,14 @@ Build the macOS app with the command above. Run the independent rules tests with
 swift test
 ```
 
-The Xcode app and test package compile the same `Chessy/ChessGame.swift` source. Tests cover each piece, blocked paths and captures, turns, king safety and pins, castling restrictions and lost rights, en passant and its expiry, all promotion choices, checkmate, stalemate, and the opening move tree through three plies (400 and 8,902 positions).
+The Xcode app and test package compile the same model and GameStore sources. Tests cover each piece, blocked paths and captures, turns, king safety and pins, castling restrictions and lost rights, en passant and its expiry, all promotion choices, checkmate, stalemate, and the opening move tree through three plies (400 and 8,902 positions).
 
-Verified with Xcode 26.5: app build and rules tests passed. In the running app, manually checked illegal-move feedback, turn enforcement, destination highlights, cancellation, Fool's Mate with disabled squares, and promotion cancellation followed by choosing a knight.
+Storage tests additionally cover missing/corrupt/version-mismatched saves, restored turn and special-move rights, promotion, completed games, replacing a save with a new game, and write failures using isolated temporary files. A move/save coordination
+test injects a failing save, checks that the legal move stays in memory while
+the previous file remains unchanged, then uses the real store on the next move
+and verifies that both moves are restored. Illegal moves do not attempt saving.
+
+Verified with Xcode 26.5: app builds and all 26 tests passed. Manually verified e2–e4 surviving quit/relaunch with Black to move, and New Game cancellation/confirmation. In the running app, manually checked illegal-move feedback, turn enforcement, destination highlights, cancellation, Fool's Mate with disabled squares, and promotion cancellation followed by choosing a knight.
 
 Movement rules were checked against [FIDE Laws of Chess, Article 3](https://handbook.fide.com/chapter/E012023).
 

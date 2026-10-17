@@ -1,15 +1,15 @@
 // Board indices run from a8 (0) to h1 (63).
-enum ChessSide: String, CaseIterable {
+enum ChessSide: String, CaseIterable, Codable {
     case white, black
     var opponent: Self { self == .white ? .black : .white }
 }
 
-enum PieceKind: String, CaseIterable {
+enum PieceKind: String, CaseIterable, Codable {
     case king, queen, rook, bishop, knight, pawn
     static let promotions: [Self] = [.queen, .rook, .bishop, .knight]
 }
 
-struct ChessPiece: Equatable {
+struct ChessPiece: Equatable, Codable {
     let side: ChessSide
     let kind: PieceKind
     var name: String { "\(side.rawValue) \(kind.rawValue)" }
@@ -22,7 +22,7 @@ struct ChessMove: Equatable {
     var promotion: PieceKind? = nil
 }
 
-enum CastleRight: CaseIterable {
+enum CastleRight: String, CaseIterable, Codable {
     case whiteKing, whiteQueen, blackKing, blackQueen
 }
 
@@ -31,7 +31,7 @@ enum GameStatus: Equatable {
     var isFinished: Bool { self == .checkmate || self == .stalemate }
 }
 
-struct ChessGame {
+struct ChessGame: Codable {
     private(set) var board: [ChessPiece?]
     private(set) var turn: ChessSide
     private(set) var castlingRights: Set<CastleRight>
@@ -58,6 +58,40 @@ struct ChessGame {
         self.turn = turn
         self.castlingRights = castlingRights
         self.enPassant = enPassant
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case board, turn, castlingRights, enPassant
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        board = try values.decode([ChessPiece?].self, forKey: .board)
+        turn = try values.decode(ChessSide.self, forKey: .turn)
+        castlingRights = try values.decode(Set<CastleRight>.self, forKey: .castlingRights)
+        enPassant = try values.decodeIfPresent(Int.self, forKey: .enPassant)
+        // Reject malformed positions before any board-indexed rule calculations.
+        guard board.count == 64,
+              ChessSide.allCases.allSatisfy({ side in
+                  board.filter { $0 == ChessPiece(side: side, kind: .king) }.count == 1
+              }),
+              !(0..<8).contains(where: { board[$0]?.kind == .pawn || board[$0 + 56]?.kind == .pawn }) else {
+            throw DecodingError.dataCorruptedError(forKey: .board, in: values, debugDescription: "Invalid saved board")
+        }
+        if let target = enPassant {
+            let row = turn == .white ? 2 : 5
+            guard (0..<64).contains(target), target / 8 == row else {
+                throw DecodingError.dataCorruptedError(forKey: .enPassant, in: values, debugDescription: "Invalid en passant target")
+            }
+            let pawnSquare = target + (turn == .white ? 8 : -8)
+            guard board[target] == nil,
+                  board[pawnSquare] == ChessPiece(side: turn.opponent, kind: .pawn) else {
+                throw DecodingError.dataCorruptedError(forKey: .enPassant, in: values, debugDescription: "Invalid en passant target")
+            }
+        }
+        guard !isInCheck(turn.opponent) else {
+            throw DecodingError.dataCorruptedError(forKey: .board, in: values, debugDescription: "Previous side left its king in check")
+        }
     }
 
     var status: GameStatus {
