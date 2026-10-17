@@ -2,7 +2,7 @@
 { archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
 000000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2650; }; buildConfigurationList = 00000000000000000000000E; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; knownRegions = (en, Base); mainGroup = 000000000000000000000002; productRefGroup = 000000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (000000000000000000000005,); };
 000000000000000000000002 = { isa = PBXGroup; children = (000000000000000000000003, 000000000000000000000004,); sourceTree = "<group>"; };
-000000000000000000000003 = { isa = PBXGroup; path = Chessy; children = (000000000000000000000007, 000000000000000000000008, 000000000000000000000014, 000000000000000000000016,); sourceTree = "<group>"; };
+000000000000000000000003 = { isa = PBXGroup; path = Chessy; children = (000000000000000000000007, 000000000000000000000008, 000000000000000000000018, 000000000000000000000014, 000000000000000000000016,); sourceTree = "<group>"; };
 000000000000000000000004 = { isa = PBXGroup; name = Products; children = (000000000000000000000006,); sourceTree = "<group>"; };
 000000000000000000000006 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = Chessy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 000000000000000000000007 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessyApp.swift; sourceTree = "<group>"; };
@@ -10,7 +10,7 @@
 000000000000000000000009 = { isa = PBXBuildFile; fileRef = 000000000000000000000007; };
 00000000000000000000000A = { isa = PBXBuildFile; fileRef = 000000000000000000000008; };
 000000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = 00000000000000000000000F; buildPhases = (00000000000000000000000B, 00000000000000000000000C, 00000000000000000000000D,); buildRules = (); dependencies = (); name = Chessy; productName = Chessy; productReference = 000000000000000000000006; productType = "com.apple.product-type.application"; };
-00000000000000000000000B = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000000009, 00000000000000000000000A,); runOnlyForDeploymentPostprocessing = 0; };
+00000000000000000000000B = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000000009, 00000000000000000000000A, 000000000000000000000019,); runOnlyForDeploymentPostprocessing = 0; };
 00000000000000000000000C = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 00000000000000000000000D = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000000015, 000000000000000000000017,); runOnlyForDeploymentPostprocessing = 0; };
 00000000000000000000000E = { isa = XCConfigurationList; buildConfigurations = (000000000000000000000010, 000000000000000000000011,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
@@ -23,4 +23,6 @@
 000000000000000000000015 = { isa = PBXBuildFile; fileRef = 000000000000000000000014; };
 000000000000000000000016 = { isa = PBXFileReference; lastKnownFileType = text; path = "PieceArtwork-LICENSE.txt"; sourceTree = "<group>"; };
 000000000000000000000017 = { isa = PBXBuildFile; fileRef = 000000000000000000000016; };
+000000000000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessGame.swift; sourceTree = "<group>"; };
+000000000000000000000019 = { isa = PBXBuildFile; fileRef = 000000000000000000000018; };
 }; rootObject = 000000000000000000000001; }
